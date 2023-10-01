@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html class="h-full">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            body {
+                font-family: 'Xanh Mono', monospace;
+                text-shadow: 0 0 4px;
+            }
+            body::-webkit-scrollbar {
+                display:none;
+            }
+        </style>
+    </head>
+    <body class="bg-slate-800 w-full h-full flex items-center justify-center">
+        <div id="time" class="text-slate-50">00:00:00</div>
+        <div id="date" class="text-slate-500 text-right fixed right-4 bottom-2">Mon Jan 16 2023 GMT-9</div>
+        <script>
+            function zeroPadding2(n) {
+                n = "0" + n;
+                return n.substring(n.length - 2, n.length);
+            }
+            function drawDateTime(now) {
+                const timeEl = document.getElementById("time");
+                const time = 
+                    zeroPadding2(now.getHours()) + ":" +
+                    zeroPadding2(now.getMinutes()) + ":" +
+                    zeroPadding2(now.getSeconds());
+                if (timeEl.innerHTML != time) {
+                    timeEl.innerHTML = time;
+                    document.title = time;
+                }
+                const dateEl = document.getElementById("date");
+                const date = now.toDateString() + " GMT" + (now.getTimezoneOffset() / 60);
+                if (dateEl.innerHTML != date) {
+                    dateEl.innerHTML = date;
+                }
+            }
+            function draw() {
+                const now = new Date();
+                drawDateTime(now);
+                // requestAnimationFrame(draw);
+                setTimeout(() => {
+                    draw();
+                }, 100); // 10FPS
+            }
+
+            function resetFontSize() {
+                const timeEl = document.getElementById("time");
+                const length = 10; // " HH:MM:SS "
+                const fontSize = Math.floor(document.body.clientWidth / length * 2);
+                timeEl.style.fontSize = fontSize + "px";
+                const dateEl = document.getElementById("date");
+                dateEl.style.fontSize = (fontSize / 6) + "px";
+            }
+            window.onresize = resetFontSize;
+            resetFontSize();
+
+            function toggleFullScreen() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+            document.addEventListener("click", () => {
+                toggleFullScreen();
+            });
+            document.addEventListener("touchend", () => {
+                toggleFullScreen();
+            });
+
+            var colors = [
+                "slate", "gray", "zinc", "neutral", "stone", "red", "orange", "amber", "yellow", "lime",
+                "green", "emerald", "teal", "cyan", "sky", "blue", "indigo", "violet", "purple", "fuchsia",
+                "pink", "rose"];
+            var storageKeyColor = "clock-clock2-color";
+            var currentColor = parseInt(localStorage.getItem(storageKeyColor) | "0");
+            function changeColor() {
+                let changeClass = (el) => {
+                    el.className = el.className.replace(/(text|bg)-[a-z]+-([0-9]+)/, '$1-' + colors[currentColor] + '-$2');
+                    return el;
+                };
+                changeClass(document.getElementsByTagName("body")[0]);
+                changeClass(document.getElementById("time"));
+                changeClass(document.getElementById("date"));
+            }
+            document.addEventListener("wheel", (event) => {
+                if (event.deltaY != 0) {
+                    if (event.deltaY > 0) {
+                        if (++currentColor >= colors.length) {
+                            currentColor = 0;
+                        }
+                    } else {
+                        if (--currentColor <= 0) {
+                            currentColor = colors.length - 1;
+                        }
+                    }
+                    changeColor();
+                    localStorage.setItem(storageKeyColor, "" + currentColor);
+                }
+            });
+            changeColor();
+
+            draw()
+        </script>
+    </body>
+</html>
